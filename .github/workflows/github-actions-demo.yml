@@ -1,18 +1,21 @@
-name: GitHub Actions Demo
+name: Build
 on: [push]
 jobs:
-  build:
-    name: build-windows-x64
-    runs-on: windows-latest
+  build-windows:
+    name: Build-Windows-x64
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
-            name: "Windows Latest MSVC", artifact: "Windows-MSVC.tar.xz",
+            name: "Windows x64 MSVC",
             os: windows-latest,
-            build_type: "RelWithDebInfo", cc: "cl", cxx: "cl",
+            artifact: "Windows-MSVC.tar.xz",
+            build_type: "RelWithDebInfo",
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat",
+            cc: "cl",
+            cxx: "cl",
             archiver: "7z a",
             generators: "Visual Studio 16 2019"
           }
@@ -20,10 +23,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Print env
+      - name: Download submodules
         run: |
           git submodule update --init --recursive
-      - name: Configure
+      - name: CMake
         shell: bash
         run: |
           mkdir build
@@ -36,4 +39,48 @@ jobs:
             -DCMAKE_INSTALL_PREFIX:PATH=instdir
       - name: Build
         shell: bash
-        run: cmake --build . --config ${{ matrix.config.build_type }}
+        run: cmake --build ./ --config ${{ matrix.config.build_type }}
+  build-ubuntu:
+    name: Build-Ubuntu-x64
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Ubuntu GCC-11",
+            os: ubuntu-latest,
+            artifact: "ubuntu_gcc.7z",
+            build_type: "RelWithDebInfo",
+            cc: "gcc-11",
+            cxx: "g++-11",
+            archiver: "7z a",
+            generators: "Unix Makefiles"
+          }
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install GCC-11
+        run: |
+          sudo apt update
+          sudo apt install gcc-11 g++-11
+      - name: Download submodules
+        run: |
+          git submodule update --init --recursive
+      - name: CMake
+        shell: bash
+        env:
+         CC:   gcc-11
+         CXX:  g++-11
+        run: |
+          mkdir build
+          mkdir instdir
+          cmake \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -G "${{ matrix.config.generators }}" \
+            -DCMAKE_INSTALL_PREFIX:PATH=instdir \
+            ./
+      - name: Build
+        shell: bash
+        run: cmake --build ./ --config ${{ matrix.config.build_type }}
