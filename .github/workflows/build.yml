@@ -27,27 +27,16 @@ jobs:
         id: init-env
         uses: Silverlan/common_actions/set_common_env_vars@main
 
-      - name: Setup GeometricTools
-        id: setup-gt
-        shell: bash
-        run:   |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            echo "::set-output name=gt_build_target::Mathematics"
-          else
-            echo "::set-output name=gt_build_target::GTE/GTMathematics.v14"
-          fi
-
-      - name: Build
-        id: build
+      - name: Build submodule - udm
+        id: build-udm
         uses: Silverlan/util_udm/github_actions/build@master
         with:
-          root_dir: "${{ env.GA_ROOT_DIR }}"
-          should_checkout: "0"
-          dir: '.'
+          root_dir: "${{ inputs.root_dir }}/external_libs/util_udm"
+          build_shared: '1'
           
       - name: CMake
         shell: bash
         run: |
-          echo "library_file_path: ${{ steps.build.outputs.library_file_path }}"
-          echo "include_directory: ${{ steps.build.outputs.include_directory }}"
+          echo "library_file_path: ${{ steps.build-udm.outputs.library_file_path }}"
+          echo "include_directory: ${{ steps.build-udm.outputs.include_directory }}"
 
