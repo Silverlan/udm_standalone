@@ -22,45 +22,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: Download submodules
-        run: |
-          git submodule update --init --recursive
-      - name: CMake
-        shell: bash
-        run: |
-          mkdir build
-          mkdir instdir
-          cmake \
-            -S . \
-            -B . \
-            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-            -G "${{ matrix.config.generators }}" \
-            -DCMAKE_INSTALL_PREFIX:PATH=instdir
-      - name: Build
-        shell: bash
-        run: cmake --build ./ --config ${{ matrix.config.build_type }}
-  build-ubuntu:
-    name: Build-Ubuntu-x64
-    runs-on: ${{ matrix.config.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-        - {
-            name: "Ubuntu GCC-11",
-            os: ubuntu-latest,
-            artifact: "ubuntu_gcc.7z",
-            build_type: "RelWithDebInfo",
-            cc: "gcc-11",
-            cxx: "g++-11",
-            archiver: "7z a",
-            generators: "Unix Makefiles"
-          }
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
+      
       - name: Download sharedutils
         id: dl-shared
         uses: Silverlan/common_actions/get_submodule@main
@@ -74,3 +36,4 @@ jobs:
         shell: bash
         run: |
           echo "Output: ${{ steps.dl-shared.outputs.include_directory }}"
+
