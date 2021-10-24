@@ -37,23 +37,17 @@ jobs:
             echo "::set-output name=gt_build_target::GTE/GTMathematics.v14"
           fi
 
-      - name: Build GeometricTools
-        uses: Silverlan/common_actions/build_submodule@main
-        id: build-gt
+      - name: Build
+        id: build
+        uses: Silverlan/util_udm/github_actions/build@master
         with:
-          repo: 'https://github.com/davideberly/GeometricTools.git'
-          repo_name: 'GeometricTools'
-          build_target_windows: '${{ env.GA_ROOT_DIR }}/third_party_libs/GeometricTools/${{ steps.setup-gt.outputs.gt_build_target }}'
-          build_target_linux: 'Mathematics'
-          lib_name: 'third_party_libs/GeometricTools/GTE/GTMathematics.v14'
-          cmake_var: 'DEPENDENCY_GEOMETRIC_TOOLS_INCLUDE'
-          top_level_dir: 'third_party_libs'
-          cmake_script_location: 'third_party_libs/GeometricTools/GTE'
-          build_type: 'Release'
-          include_dir: 'GTE'
+          root_dir: "${{ env.GA_ROOT_DIR }}"
+          should_checkout: "0"
+          dir: '.'
           
       - name: CMake
         shell: bash
         run: |
-          echo "Output: ${{ steps.build-gt.outputs.library_file_path }}"
+          echo "library_file_path: ${{ steps.build.outputs.library_file_path }}"
+          echo "include_directory: ${{ steps.build.outputs.include_directory }}"
 
