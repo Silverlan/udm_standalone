@@ -23,17 +23,37 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       
-      - name: Download sharedutils
-        id: dl-shared
-        uses: Silverlan/common_actions/get_submodule@main
+      - name: Initialize Env
+        id: init-env
+        uses: Silverlan/common_actions/set_common_env_vars@main
+
+      - name: Setup GeometricTools
+        id: setup-gt
+        shell: bash
+        run:   |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            echo "::set-output name=gt_build_target::Mathematics"
+          else
+            echo "::set-output name=gt_build_target::GTE/GTMathematics.v14"
+          fi
+
+      - name: Build GeometricTools
+        uses: Silverlan/common_actions/build_submodule@main
+        id: build-gt
         with:
-          repo: 'https://github.com/Silverlan/sharedutils.git'
-          repo_name: 'sharedutils'
-          dir: 'external_libs'
-          cmake_var: 'DEPENDENCY_SHAREDUTILS_INCLUDE'
+          repo: 'https://github.com/davideberly/GeometricTools.git'
+          repo_name: 'GeometricTools'
+          build_target_windows: '${{ env.GA_ROOT_DIR }}/third_party_libs/GeometricTools/${{ steps.setup-gt.outputs.gt_build_target }}'
+          build_target_linux: 'Mathematics'
+          lib_name: 'third_party_libs/GeometricTools/GTE/GTMathematics.v14'
+          cmake_var: 'DEPENDENCY_GEOMETRIC_TOOLS_INCLUDE'
+          top_level_dir: 'third_party_libs'
+          cmake_script_location: 'third_party_libs/GeometricTools/GTE'
+          build_type: 'Release'
+          include_dir: 'GTE'
           
       - name: CMake
         shell: bash
         run: |
-          echo "Output: ${{ steps.dl-shared.outputs.include_directory }}"
+          echo "Output: ${{ steps.build-gt.outputs.library_file_path }}"
 
